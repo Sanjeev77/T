@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .calculator-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        .time-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+
+        .number-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s;
+        }
+
+        .time-input-group:focus-within {
+            border-color: #667eea;
+        }
+
+        .time-input-group input[type="number"] {
+            border: none;
+            outline: none;
+            width: 60px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .time-input-group label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .preset-btn {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .multiple-times-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .time-rows-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .time-rows-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .time-rows-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .time-rows-grid::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .time-rows-grid::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
+        }
+
+        .operation-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .operation-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            /* Touch-friendly minimum target size */
+            min-height: 40px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .operation-btn.active.add {
+            background: #28a745;
+            color: white;
+        }
+
+        .operation-btn.active.subtract {
+            background: #dc3545;
+            color: white;
+        }
+
+        .operation-btn:not(.active) {
+            background: transparent;
+            color: #666;
+        }
+
+        .operation-btn:not(.active):hover {
+            background: #e9ecef;
+        }
+
+        .time-row.subtract {
+            border-left: 4px solid #dc3545;
+        }
+
+        .time-row.add {
+            border-left: 4px solid #28a745;
+        }
+
+        .total-section.negative {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .total-section.negative .total-time {
+            color: #fff;
+        }
+
+        .total-section.negative .total-breakdown {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .time-item.add {
+            border-left: 4px solid #28a745;
+        }
+
+        .time-item.subtract {
+            border-left: 4px solid #dc3545;
+        }
+
+        .time-item.subtract .time-display::before {
+            content: "− ";
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .time-item.add .time-display::before {
+            content: "+ ";
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .multiple-times-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .multiple-times-header span {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .btn-add-row {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 36px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn-add-row:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .time-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .time-row-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .time-row:hover {
+            border-color: #667eea;
+        }
+
+        .time-input-groups {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .compact-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .time-row .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .time-row .time-input-group:focus-within {
+            border-color: #667eea;
+        }
+
+        .time-row .time-input-group input[type="number"] {
+            border: none;
+            outline: none;
+            width: 60px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background: transparent;
+            min-width: 50px;
+        }
+
+        .time-row .time-input-group label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .compact-input-group .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .compact-input-group .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .compact-input-group .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-remove-row {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            align-self: flex-start;
+            min-height: 32px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn-remove-row:hover {
+            background: #c82333;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0 0;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c82333;
+        }
+
+        .time-list {
+            margin-bottom: 20px;
+        }
+
+        .time-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .time-item .time-display {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            min-height: 36px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .top-layout {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .input-section {
+            flex: 0 0 auto;
+            width: 600px;
+            min-width: 500px;
+        }
+
+        .entries-section {
+            margin-top: 20px;
+        }
+
+        .entries-section .calculator-section {
+            margin-bottom: 0;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            flex: 0 0 280px;
+            height: fit-content;
+            align-self: flex-start;
+            margin-top: 65px;
+        }
+
+        .total-label {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .total-time {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .total-breakdown {
+            margin-top: 15px;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 1000px) {
+            .top-layout {
+                flex-direction: column;
+                gap: 20px;
+                margin-bottom: 25px;
+            }
+
+            .input-section {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .total-section {
+                flex: none;
+                margin-top: 0;
+                align-self: stretch;
+            }
+
+            .entries-section {
+                margin-top: 15px;
+            }
+        }
+
+        /* Tablet and large mobile devices (portrait) */
+        @media (max-width: 768px) and (min-width: 481px) {
+            .container {
+                padding: 25px;
+            }
+
+            .operation-btn {
+                padding: 11px 16px;
+                font-size: 0.95rem;
+                min-height: 44px;
+            }
+
+            .time-input-group {
+                padding: 14px 18px;
+                min-height: 50px;
+            }
+
+            .time-input-group input[type="number"] {
+                width: 70px;
+                font-size: 1.05rem;
+                min-height: 36px;
+            }
+
+            .compact-input-group .slider {
+                height: 7px;
+                margin: 10px 0;
+            }
+
+            .compact-input-group .slider::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            .compact-input-group .slider::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            .btn {
+                padding: 13px 22px;
+                font-size: 1rem;
+                min-height: 46px;
+            }
+
+            .btn-add-row {
+                min-height: 42px;
+                padding: 9px 18px;
+            }
+
+            .time-row {
+                padding: 18px;
+                margin-bottom: 15px;
+            }
+
+            .time-rows-grid {
+                gap: 15px;
+                max-height: 380px;
+            }
+
+            .total-section {
+                padding: 25px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            body .container {
+                background: white !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 12px !important;
+                max-width: none !important;
+                width: 100% !important;
+                min-height: 100vh !important;
+            }
+
+            body h1 {
+                font-size: 1.5rem !important;
+                margin-bottom: 15px !important;
+            }
+
+            /* Much smaller operation toggle buttons */
+            body .operation-toggle {
+                padding: 1px !important;
+                margin-bottom: 6px !important;
+            }
+
+            body .operation-btn {
+                padding: 6px 8px !important;
+                font-size: 0.8rem !important;
+                min-height: 30px !important;
+                border-radius: 4px !important;
+            }
+
+            /* Compact input controls */
+            body .time-input-group {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 8px 6px 4px 6px !important;
+                min-height: 44px !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 4px !important;
+                background: white !important;
+                border-radius: 6px !important;
+                border: 1px solid #e9ecef !important;
+            }
+
+            body .time-input-group input[type="number"] {
+                width: 60px !important;
+                font-size: 1.1rem !important;
+                padding: 6px !important;
+                min-height: 36px !important;
+                text-align: center !important;
+                border: 1px solid #dee2e6 !important;
+                border-radius: 4px !important;
+                background: #f8f9fa !important;
+            }
+
+            body .time-input-group input[type="number"]:focus {
+                border-color: #667eea !important;
+                outline: none !important;
+            }
+
+            body .time-input-group label {
+                font-size: 0.75rem !important;
+                font-weight: 600 !important;
+                color: #666 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            /* Smaller slider controls */
+            body .compact-input-group .slider {
+                height: 4px !important;
+                margin: 6px 0 !important;
+            }
+
+            body .compact-input-group .slider::-webkit-slider-thumb {
+                width: 18px !important;
+                height: 18px !important;
+                border: 2px solid #fff !important;
+            }
+
+            body .compact-input-group .slider::-moz-range-thumb {
+                width: 18px !important;
+                height: 18px !important;
+                border: 2px solid #fff !important;
+            }
+
+            /* Much smaller buttons */
+            body .btn-add-row {
+                padding: 4px 8px !important;
+                font-size: 0.75rem !important;
+                min-height: 28px !important;
+                border-radius: 4px !important;
+                position: absolute !important;
+                right: 12px !important;
+                top: 8px !important;
+            }
+
+            body .multiple-times-header {
+                position: relative !important;
+                padding-right: 80px !important;
+            }
+
+            body .btn-remove-row {
+                padding: 3px 6px !important;
+                font-size: 0.7rem !important;
+                min-height: 26px !important;
+                border-radius: 3px !important;
+            }
+
+            body .btn-group {
+                flex-direction: column !important;
+                gap: 4px !important;
+            }
+
+            body .btn {
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+                min-height: 34px !important;
+                border-radius: 5px !important;
+            }
+
+            body .btn-remove {
+                padding: 4px 8px !important;
+                font-size: 0.75rem !important;
+                min-height: 28px !important;
+                border-radius: 4px !important;
+            }
+
+            body .total-time {
+                font-size: 1.5rem !important;
+            }
+
+            body .total-section {
+                padding: 12px !important;
+            }
+
+            body .time-row-header {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 6px !important;
+            }
+
+            body .time-input-groups {
+                flex-direction: row !important;
+                gap: 6px !important;
+                justify-content: space-between !important;
+            }
+
+            body .compact-input-group {
+                min-width: auto !important;
+                flex: 1 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Smart slider integration for mobile */
+            body .compact-input-group .slider {
+                display: block !important;
+                width: 100% !important;
+                height: 6px !important;
+                margin: 6px 0 0 0 !important;
+                background: linear-gradient(to right, #e9ecef 0%, #667eea 0%, #667eea 0%, #e9ecef 0%) !important;
+                border-radius: 3px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+            }
+
+            body .compact-input-group .slider::-webkit-slider-thumb {
+                width: 20px !important;
+                height: 20px !important;
+                border: 2px solid #fff !important;
+                background: #667eea !important;
+                border-radius: 50% !important;
+                cursor: pointer !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+            }
+
+            body .compact-input-group .slider::-moz-range-thumb {
+                width: 20px !important;
+                height: 20px !important;
+                border: 2px solid #fff !important;
+                background: #667eea !important;
+                border-radius: 50% !important;
+                cursor: pointer !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+            }
+
+            body .compact-input-group .slider::-webkit-slider-track {
+                background: transparent !important;
+                border: none !important;
+            }
+
+            body .compact-input-group .slider::-moz-range-track {
+                background: transparent !important;
+                border: none !important;
+            }
+
+            body .time-row {
+                padding: 12px !important;
+                margin-bottom: 10px !important;
+                border-radius: 8px !important;
+                background: #f8f9fa !important;
+                border: 1px solid #e9ecef !important;
+            }
+
+            /* Optimized spacing */
+            body .time-rows-grid {
+                gap: 8px !important;
+                padding-right: 8px !important;
+                max-height: 300px !important;
+            }
+
+            /* Compact scrollbar */
+            body .time-rows-grid::-webkit-scrollbar {
+                width: 6px !important;
+            }
+
+            body .time-rows-grid::-webkit-scrollbar-thumb {
+                border-radius: 3px !important;
+            }
+
+            body .top-layout {
+                gap: 12px !important;
+                margin-bottom: 12px !important;
+            }
+
+            body .entries-section {
+                margin-top: 8px !important;
+            }
+
+            body .time-item {
+                padding: 6px 10px !important;
+                margin-bottom: 4px !important;
+            }
+
+            body .total-breakdown {
+                font-size: 0.85rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Time Calculator</h1>
+
+        <div class="top-layout">
+            <div class="input-section">
+                <div class="calculator-section">
+
+                    <div class="multiple-times-container">
+                        <div class="multiple-times-header">
+                            <span>Enter multiple times:</span>
+                            <button class="btn-add-row" onclick="addTimeRow()">+ Add Row</button>
+                        </div>
+                        <div class="time-rows-grid" id="timeRows">
+                            <!-- Time rows will be added here -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="total-section">
+                <div class="total-label">Total Time</div>
+                <div class="total-time" id="totalTime">0h 0m 0s</div>
+                <div class="total-breakdown" id="totalBreakdown">
+                    0 hours, 0 minutes, 0 seconds
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-add" onclick="addCurrentToList()">Add to List</button>
+                    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <div class="calculator-section">
+                <div class="time-list" id="timeList">
+                    <p style="text-align: center; color: #666; font-style: italic;">No time entries yet. Add some times above!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timeEntries = [];
+        let timeRowCounter = 0;
+
+        function initializeTimeCards() {
+            const timeRows = document.getElementById('timeRows');
+            timeRows.innerHTML = '';
+            timeRowCounter = 0;
+
+            // Add 2 initial rows
+            addTimeRow();
+            addTimeRow();
+        }
+
+        function addTimeRow() {
+            timeRowCounter++;
+            const timeRows = document.getElementById('timeRows');
+            const isRemovable = timeRowCounter > 2; // Only show remove button for rows beyond the first 2
+
+            const rowHtml = `
+                <div class="time-row add" id="timeRow-${timeRowCounter}" data-operation="add">
+                    <div class="time-row-header">
+                        <div class="operation-toggle">
+                            <button class="operation-btn add active" onclick="setOperation(${timeRowCounter}, 'add')">
+                                <span>+</span> Add
+                            </button>
+                            <button class="operation-btn subtract" onclick="setOperation(${timeRowCounter}, 'subtract')">
+                                <span>−</span> Subtract
+                            </button>
+                        </div>
+                        <div class="time-input-groups">
+                            <div class="compact-input-group">
+                                <div class="time-input-group">
+                                    <input type="number" id="multiHours-${timeRowCounter}" min="0" max="999" value="0" placeholder="0"
+                                           oninput="syncSliderFromNumber(${timeRowCounter}, 'hours', this.value)">
+                                    <label>hours</label>
+                                </div>
+                                <input type="range" class="slider" id="multiHoursSlider-${timeRowCounter}" min="0" max="24" value="0"
+                                       oninput="syncNumberFromSlider(${timeRowCounter}, 'hours', this.value)">
+                            </div>
+                            <div class="compact-input-group">
+                                <div class="time-input-group">
+                                    <input type="number" id="multiMinutes-${timeRowCounter}" min="0" max="59" value="0" placeholder="0"
+                                           oninput="syncSliderFromNumber(${timeRowCounter}, 'minutes', this.value)">
+                                    <label>minutes</label>
+                                </div>
+                                <input type="range" class="slider" id="multiMinutesSlider-${timeRowCounter}" min="0" max="59" value="0"
+                                       oninput="syncNumberFromSlider(${timeRowCounter}, 'minutes', this.value)">
+                            </div>
+                            <div class="compact-input-group">
+                                <div class="time-input-group">
+                                    <input type="number" id="multiSeconds-${timeRowCounter}" min="0" max="59" value="0" placeholder="0"
+                                           oninput="syncSliderFromNumber(${timeRowCounter}, 'seconds', this.value)">
+                                    <label>seconds</label>
+                                </div>
+                                <input type="range" class="slider" id="multiSecondsSlider-${timeRowCounter}" min="0" max="59" value="0"
+                                       oninput="syncNumberFromSlider(${timeRowCounter}, 'seconds', this.value)">
+                            </div>
+                        </div>
+                        ${isRemovable ? `<button class="btn-remove-row" onclick="removeTimeRow(${timeRowCounter})">Remove</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            timeRows.insertAdjacentHTML('beforeend', rowHtml);
+            updateLiveTotal();
+
+            // Auto-scroll to the newly added row
+            setTimeout(() => {
+                const newRow = document.getElementById(`timeRow-${timeRowCounter}`);
+                if (newRow) {
+                    newRow.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                        inline: 'nearest'
+                    });
+                }
+            }, 100);
+        }
+
+        function removeTimeRow(rowId) {
+            const totalRows = document.querySelectorAll('.time-row').length;
+            if (totalRows <= 2) {
+                alert('You must have at least 2 time entries in multiple mode!');
+                return;
+            }
+
+            // Don't allow removing the first 2 default rows
+            if (rowId <= 2) {
+                alert('Cannot remove default time cards!');
+                return;
+            }
+
+            const row = document.getElementById(`timeRow-${rowId}`);
+            if (row) {
+                row.remove();
+                updateRowNumbers();
+                updateLiveTotal();
+            }
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('.time-row');
+            rows.forEach((row, index) => {
+                const rowNumber = row.querySelector('.row-number');
+                rowNumber.textContent = index + 1;
+            });
+        }
+
+        function syncSliderFromNumber(rowId, type, value) {
+            const clampedValue = type === 'hours' ? Math.min(Math.max(0, value), 24) : Math.min(Math.max(0, value), 59);
+            document.getElementById(`multi${type.charAt(0).toUpperCase() + type.slice(1)}Slider-${rowId}`).value = clampedValue;
+            updateLiveTotal();
+        }
+
+        function syncNumberFromSlider(rowId, type, value) {
+            document.getElementById(`multi${type.charAt(0).toUpperCase() + type.slice(1)}-${rowId}`).value = value;
+            updateLiveTotal();
+        }
+
+        function setRowPresetTime(rowId, hours, minutes, seconds) {
+            document.getElementById(`multiHours-${rowId}`).value = hours;
+            document.getElementById(`multiMinutes-${rowId}`).value = minutes;
+            document.getElementById(`multiSeconds-${rowId}`).value = seconds;
+
+            document.getElementById(`multiHoursSlider-${rowId}`).value = Math.min(hours, 24);
+            document.getElementById(`multiMinutesSlider-${rowId}`).value = minutes;
+            document.getElementById(`multiSecondsSlider-${rowId}`).value = seconds;
+
+            updateLiveTotal();
+        }
+
+
+        function setOperation(rowId, operation) {
+            const row = document.getElementById(`timeRow-${rowId}`);
+            const addBtn = row.querySelector('.operation-btn.add');
+            const subtractBtn = row.querySelector('.operation-btn.subtract');
+
+            // Update button states
+            addBtn.classList.toggle('active', operation === 'add');
+            subtractBtn.classList.toggle('active', operation === 'subtract');
+
+            // Update row styling and data
+            row.className = `time-row ${operation}`;
+            row.setAttribute('data-operation', operation);
+
+            updateLiveTotal();
+        }
+
+        function getCurrentTimeValues() {
+            // Return array of all time entries from multiple rows
+            const rows = document.querySelectorAll('.time-row');
+            const times = [];
+
+            rows.forEach((row, index) => {
+                const rowNum = index + 1;
+                const hours = parseInt(document.getElementById(`multiHours-${row.id.split('-')[1]}`).value) || 0;
+                const minutes = parseInt(document.getElementById(`multiMinutes-${row.id.split('-')[1]}`).value) || 0;
+                const seconds = parseInt(document.getElementById(`multiSeconds-${row.id.split('-')[1]}`).value) || 0;
+                const operation = row.getAttribute('data-operation') || 'add';
+
+                if (hours > 0 || minutes > 0 || seconds > 0) {
+                    times.push({ hours, minutes, seconds, operation });
+                }
+            });
+
+            return times;
+        }
+
+        function clearCurrentInputs() {
+            const rows = document.querySelectorAll('.time-row');
+            rows.forEach(row => {
+                const rowId = row.id.split('-')[1];
+                document.getElementById(`multiHours-${rowId}`).value = 0;
+                document.getElementById(`multiMinutes-${rowId}`).value = 0;
+                document.getElementById(`multiSeconds-${rowId}`).value = 0;
+
+                document.getElementById(`multiHoursSlider-${rowId}`).value = 0;
+                document.getElementById(`multiMinutesSlider-${rowId}`).value = 0;
+                document.getElementById(`multiSecondsSlider-${rowId}`).value = 0;
+            });
+            updateLiveTotal();
+        }
+
+
+        function removeTime(index) {
+            timeEntries.splice(index, 1);
+            updateDisplay();
+        }
+
+        function addCurrentToList() {
+            const currentValues = getCurrentTimeValues();
+            if (currentValues.length > 0) {
+                timeEntries.push(...currentValues);
+                clearCurrentInputs();
+                updateDisplay();
+            }
+        }
+
+        function clearAll() {
+            timeEntries = [];
+            clearCurrentInputs();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const timeList = document.getElementById('timeList');
+
+            if (timeEntries.length === 0) {
+                timeList.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No time entries yet. Add some times above!</p>';
+            } else {
+                timeList.innerHTML = timeEntries.map((entry, index) => `
+                    <div class="time-item ${entry.operation || 'add'}">
+                        <span class="time-display">${formatTime(entry.hours, entry.minutes, entry.seconds)}</span>
+                        <button class="btn-remove" onclick="removeTime(${index})">Remove</button>
+                    </div>
+                `).join('');
+            }
+
+            updateTotal();
+        }
+
+        function calculateTime(entries) {
+            let totalSeconds = 0;
+
+            entries.forEach(entry => {
+                const entryTotalSeconds = entry.hours * 3600 + entry.minutes * 60 + entry.seconds;
+                if (entry.operation === 'subtract') {
+                    totalSeconds -= entryTotalSeconds;
+                } else {
+                    totalSeconds += entryTotalSeconds;
+                }
+            });
+
+            // Handle negative time
+            const isNegative = totalSeconds < 0;
+            totalSeconds = Math.abs(totalSeconds);
+
+            // Convert back to hours, minutes, seconds
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            return { hours, minutes, seconds, isNegative };
+        }
+
+        function updateTotal() {
+            const result = calculateTime(timeEntries);
+
+            // Update display
+            document.getElementById('totalTime').textContent = formatTime(result.hours, result.minutes, result.seconds, result.isNegative);
+
+            // Update breakdown
+            const breakdown = [];
+            if (result.hours > 0) breakdown.push(`${result.hours} hour${result.hours !== 1 ? 's' : ''}`);
+            if (result.minutes > 0) breakdown.push(`${result.minutes} minute${result.minutes !== 1 ? 's' : ''}`);
+            if (result.seconds > 0) breakdown.push(`${result.seconds} second${result.seconds !== 1 ? 's' : ''}`);
+
+            const breakdownText = breakdown.length > 0 ? breakdown.join(', ') : '0 hours, 0 minutes, 0 seconds';
+            document.getElementById('totalBreakdown').textContent = result.isNegative ? `Negative: ${breakdownText}` : breakdownText;
+
+            // Update total section styling
+            const totalSection = document.querySelector('.total-section');
+            totalSection.classList.toggle('negative', result.isNegative);
+        }
+
+        function updateLiveTotal() {
+            // Calculate total from current input values + existing entries
+            const allEntries = [...timeEntries, ...getCurrentTimeValues()];
+            const result = calculateTime(allEntries);
+
+            // Update display
+            document.getElementById('totalTime').textContent = formatTime(result.hours, result.minutes, result.seconds, result.isNegative);
+
+            // Update breakdown
+            const breakdown = [];
+            if (result.hours > 0) breakdown.push(`${result.hours} hour${result.hours !== 1 ? 's' : ''}`);
+            if (result.minutes > 0) breakdown.push(`${result.minutes} minute${result.minutes !== 1 ? 's' : ''}`);
+            if (result.seconds > 0) breakdown.push(`${result.seconds} second${result.seconds !== 1 ? 's' : ''}`);
+
+            const breakdownText = breakdown.length > 0 ? breakdown.join(', ') : '0 hours, 0 minutes, 0 seconds';
+            document.getElementById('totalBreakdown').textContent = result.isNegative ? `Negative: ${breakdownText}` : breakdownText;
+
+            // Update total section styling
+            const totalSection = document.querySelector('.total-section');
+            totalSection.classList.toggle('negative', result.isNegative);
+        }
+
+        function formatTime(hours, minutes, seconds, isNegative = false) {
+            const h = hours > 0 ? `${hours}h ` : '';
+            const m = minutes > 0 ? `${minutes}m ` : '';
+            const s = seconds > 0 ? `${seconds}s` : '';
+
+            const timeStr = (h + m + s).trim() || '0s';
+            return isNegative ? `−${timeStr}` : timeStr;
+        }
+
+
+        // Initialize the page with 2 time cards
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTimeCards();
+            updateLiveTotal();
+        });
+
+    </script>
+</body>
+</html>
